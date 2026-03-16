@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useRef } from 'react';
 import {
   View, Text, FlatList, StyleSheet,
   SafeAreaView, TouchableOpacity,
@@ -10,36 +10,43 @@ interface Todo {
   id: number;
   todo: string;
   date: string;
+  deadline: Date;
   priority: 'low' | 'medium' | 'high';
   completed: boolean;
+  notificationId?: string;
 }
 
-const INITIAL_TODOS: Todo[] = [
-  { id: 1, todo: 'Купити продукти', date: '2024-05-20', priority: 'high', completed: false },
-  { id: 2, todo: 'Зробити зарядку', date: '2024-05-21', priority: 'medium', completed: true },
-  { id: 3, todo: 'Прочитати книгу', date: '2024-05-22', priority: 'low', completed: false },
-];
-
 export default function Index() {
-  const { todos } = useTodos();
+  const { todos, toggleTodo, deleteTodo } = useTodos(); // ← додали toggleTodo, deleteTodo
   const router = useRouter();
+  const lastTap = useRef<{ [key: number]: number }>({});
+
+  // подвійний клік → toggle статусу
+  const handleDoubleTap = (id: number) => {
+    const now = Date.now();
+    if (now - (lastTap.current[id] || 0) < 300) {
+      toggleTodo(id);
+    }
+    lastTap.current[id] = now;
+  };
 
   const renderItem = ({ item }: { item: Todo }) => (
     <TouchableOpacity
-      onPress={() =>
+      onPress={() => {
+        handleDoubleTap(item.id);
         router.push({
-          pathname: '/(tabs)/details',
+          pathname: '/details' as any,
           params: {
             todo: item.todo,
             date: item.date,
             priority: item.priority,
             completed: item.completed.toString(),
+            deadline: item.deadline.toString(),
           },
-        })
-      }
+        });
+      }}
       activeOpacity={0.7}
     >
-      
       <View style={styles.card}>
         <View style={styles.row}>
           <View style={{ flex: 1 }}>
@@ -49,8 +56,21 @@ export default function Index() {
             <Text style={styles.details}>
               📅 {item.date} | ⚡ {item.priority.toUpperCase()}
             </Text>
+            {/* ← показуємо дедлайн якщо є */}
+            {item.deadline && (
+              <Text style={styles.deadline}>
+                ⏰ {new Date(item.deadline).toLocaleString('uk-UA')}
+              </Text>
+            )}
           </View>
-          <Text style={styles.statusIcon}>{item.completed ? '✅' : '⏳'}</Text>
+
+          <View style={styles.actions}>
+            <Text style={styles.statusIcon}>{item.completed ? '✅' : '⏳'}</Text>
+            {/* ← кнопка видалення */}
+            <TouchableOpacity onPress={() => deleteTodo(item.id)}>
+              <Text style={styles.deleteIcon}>🗑</Text>
+            </TouchableOpacity>
+          </View>
         </View>
       </View>
     </TouchableOpacity>
@@ -83,6 +103,9 @@ const styles = StyleSheet.create({
   row: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center' },
   title: { fontSize: 17, fontWeight: '500', color: '#333' },
   details: { fontSize: 13, color: '#888', marginTop: 4 },
+  deadline: { fontSize: 12, color: '#E67E22', marginTop: 4 }, // ← новий стиль
   completed: { textDecorationLine: 'line-through', color: '#BBB' },
   statusIcon: { fontSize: 22 },
+  actions: { alignItems: 'center', gap: 8 },                  // ← новий стиль
+  deleteIcon: { fontSize: 22 },                               // ← новий стиль
 });

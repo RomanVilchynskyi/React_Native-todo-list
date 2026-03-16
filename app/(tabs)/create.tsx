@@ -10,30 +10,33 @@ import { useTodos } from '../context/TODOContext';
 interface FormData {
   todo: string;
   date: string;
+  deadline: string; // ← додали
   priority: 'low' | 'medium' | 'high';
 }
 
 export default function Create() {
+  const { addTodo } = useTodos();
+
   const { control, handleSubmit, reset } = useForm<FormData>({
     defaultValues: {
       todo: '',
       date: new Date().toISOString().split('T')[0],
+      deadline: '', // ← додали
       priority: 'low',
     },
   });
 
-const { addTodo } = useTodos(); // додай імпорт
-
-const onSubmit = (data: FormData) => {
-  addTodo({
-    id: Date.now(),
-    todo: data.todo,
-    date: data.date || 'No date',
-    priority: data.priority,
-    completed: false,
-  });
-  reset();
-};
+  const onSubmit = (data: FormData) => {
+    addTodo({
+      id: Date.now(),
+      todo: data.todo,
+      date: data.date || 'No date',
+      deadline: new Date(data.deadline), // ← рядок → Date
+      priority: data.priority,
+      completed: false,
+    });
+    reset();
+  };
 
   return (
     <SafeAreaView style={styles.container}>
@@ -63,6 +66,22 @@ const onSubmit = (data: FormData) => {
             <TextInput
               style={styles.input}
               placeholder="YYYY-MM-DD"
+              value={value}
+              onChangeText={onChange}
+            />
+          )}
+        />
+
+        {/* ← нове поле */}
+        <Text style={styles.label}>Дедлайн:</Text>
+        <Controller
+          control={control}
+          name="deadline"
+          rules={{ required: true }}
+          render={({ field: { onChange, value } }) => (
+            <TextInput
+              style={styles.input}
+              placeholder="YYYY-MM-DDTHH:MM  напр. 2025-03-20T14:00"
               value={value}
               onChangeText={onChange}
             />
