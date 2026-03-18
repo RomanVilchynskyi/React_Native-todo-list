@@ -5,6 +5,7 @@ import {
 } from 'react-native';
 import { useRouter } from 'expo-router';
 import { useTodos } from '../context/TODOContext';
+import { useSafeAreaInsets } from 'react-native-safe-area-context';
 
 interface Todo {
   id: number;
@@ -20,6 +21,7 @@ export default function Index() {
   const { todos, toggleTodo, deleteTodo } = useTodos(); // ← додали toggleTodo, deleteTodo
   const router = useRouter();
   const lastTap = useRef<{ [key: number]: number }>({});
+  const insets = useSafeAreaInsets();
 
   // подвійний клік → toggle статусу
   const handleDoubleTap = (id: number) => {
@@ -77,7 +79,7 @@ export default function Index() {
   );
 
   return (
-    <SafeAreaView style={styles.container}>
+    <View style={[styles.container, { paddingTop: insets.top, paddingBottom: insets.bottom }]}>
       <FlatList
         data={todos}
         keyExtractor={(item) => item.id.toString()}
@@ -87,7 +89,7 @@ export default function Index() {
           <Text style={styles.header}>My To-Do List</Text>
         }
       />
-    </SafeAreaView>
+    </View>
   );
 }
 
