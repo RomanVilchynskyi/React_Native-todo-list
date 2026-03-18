@@ -1,6 +1,8 @@
 import React, { createContext, useContext, useEffect, useState } from 'react';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import * as Notifications from 'expo-notifications';
+import { useDispatch } from 'react-redux';
+import { setUncompletedCount } from '../slices/menuSlice';
 
 interface Todo {
   id: number;
@@ -40,6 +42,9 @@ Notifications.setNotificationHandler({
 
 export function TodoProvider({ children }: { children: React.ReactNode }) {
   const [todos, setTodos] = useState<Todo[]>([]);
+const dispatch = useDispatch();
+
+// додай новий useEffect після існуючих:
 
   // Запит дозволу на нотифікації при старті
   useEffect(() => {
@@ -112,6 +117,11 @@ export function TodoProvider({ children }: { children: React.ReactNode }) {
 
     return () => subscription.remove();
   }, []);
+  useEffect((
+      ) => {
+      const count = todos.filter(t => !t.completed).length;
+      dispatch(setUncompletedCount(count));
+    }, [todos]);
 
   const addTodo = async (todo: Todo) => {
     const notificationId = await scheduleNotification(todo);
