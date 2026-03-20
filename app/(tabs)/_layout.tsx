@@ -58,7 +58,17 @@ export default function TabLayout() {
           ),
         }}
       />
+      <Tabs.Screen
+        name="animation"
+        options={{
+          title: "Animation",
+          tabBarIcon: ({ color, focused }) => (
+            <Ionicons name={focused ? "add-circle" : "add-circle-outline"} color={color} size={24} />
+          ),
+        }}
+      />
     </Tabs>
+    
   );
 }
 
